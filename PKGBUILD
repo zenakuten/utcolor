@@ -6,23 +6,14 @@ pkgdesc='UT2004 Colored Text Editor'
 arch=('x86_64')
 url='https://github.com/zenakuten/utcolor'
 license=('MIT')
-depends=('gcc-libs')
-makedepends=('cmake' 'git' 'curl' 'zip' 'unzip' 'tar' 'pkg-config' 'ninja')
+depends=('gcc-libs' 'sdl3')
+makedepends=('cmake' 'git' 'ninja' 'sdl3')
 source=("git+https://github.com/zenakuten/utcolor.git")
 sha256sums=('SKIP')
-
-prepare() {
-    cd "$srcdir"
-    if [ ! -d vcpkg ]; then
-        git clone https://github.com/microsoft/vcpkg.git
-        ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
-    fi
-}
 
 build() {
     cd "$srcdir/$pkgname"
     cmake -B build \
-        -DCMAKE_TOOLCHAIN_FILE="$srcdir/vcpkg/scripts/buildsystems/vcpkg.cmake" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr
     cmake --build build
