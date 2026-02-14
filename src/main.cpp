@@ -6,13 +6,16 @@
 
 #include <imgui_internal.h>
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#endif
 
 #include <algorithm>
 #include <cfloat>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -27,8 +30,11 @@ static uint8_t ut_color(float f) {
     return v == 0 ? 1 : v;
 }
 
-// Copy raw bytes to clipboard as CF_TEXT, bypassing UTF-8 conversion
-static void CopyRawToClipboard(const std::string& data) {
+// Copy encoded UT color string to clipboard.
+// On Windows, use CF_TEXT directly to avoid UTF-8 mangling of raw bytes.
+// On other platforms, fall back to SDL clipboard.
+static void CopyToClipboard(const std::string& data) {
+#ifdef _WIN32
     if (!OpenClipboard(nullptr)) return;
     EmptyClipboard();
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, data.size() + 1);
@@ -40,6 +46,9 @@ static void CopyRawToClipboard(const std::string& data) {
         SetClipboardData(CF_TEXT, hMem);
     }
     CloseClipboard();
+#else
+    SDL_SetClipboardText(data.c_str());
+#endif
 }
 
 enum SelectionSource { SEL_NONE, SEL_INPUT, SEL_GRID };
@@ -415,7 +424,7 @@ int main(int, char**) {
         ImGui::TextWrapped("%s", hex_display.c_str());
 
         if (ImGui::Button("Copy to Clipboard")) {
-            CopyRawToClipboard(encoded);
+            CopyToClipboard(encoded);
         }
 
         ImGui::EndChild();
